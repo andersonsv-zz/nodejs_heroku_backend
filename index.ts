@@ -1,12 +1,27 @@
 const express = require('express')
 const path = require('path')
+const bodyParser = require('body-parser');
+
 const PORT = process.env.PORT || 5000
 
-const game2048 = require('./2048.ts');
+const gamesRouter = require('./routes/games');
+
 
 express()
+  .use(bodyParser.json())
+  .use(
+    bodyParser.urlencoded({
+      extended: true,
+    })
+  )
   .use(express.static(path.join(__dirname, 'public')))
-  .use('/game/2048', game2048)
+  .use('/games', gamesRouter)
+  .use((err, req, res, next) => {
+    const statusCode = err.statusCode || 500;
+    console.error(err.message, err.stack);
+    res.status(statusCode).json({'message': err.message});
+    return;
+  })
   .set('views', path.join(__dirname, 'views'))
   .set('view engine', 'ejs')
   .get('/', (req, res) => res.render('pages/index'))
